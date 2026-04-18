@@ -6,7 +6,7 @@
 
 ## 关于她
 
-<img src="https://free.picui.cn/free/2026/04/14/69dd981a6e2cf.png" width="120" align="right" style="border-radius:50%; margin-left:16px; margin-bottom:8px"/>
+<img src="avatar\avatar_2034869645342076928.jpg" width="120" align="right" style="border-radius:50%; margin-left:16px; margin-bottom:8px"/>
 
 **炽烈已极**
 **@AnIncandescence**
