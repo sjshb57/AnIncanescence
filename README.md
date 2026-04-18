@@ -30,22 +30,35 @@
 ## 目录
 
 ```
-📁 avatar/
-📁 html/
-📁 image/
-📁 video/
+📁 wayback_snapshots/
+    📁 avatar/
+    📁 html/
+    📁 image/
+    📁 video/
+    📄 index.json
+    📄 profile.json
+📄 .nojekyll    
+📄 README.md    
 📄 _url_list.txt
-📄 README.md
+📄 index.html
 ```
+
+---
+
+## 在线阅读
+
+本存档配有在线阅读器，可按日期浏览、全文搜索。
+
+🔗 **[打开阅读器](https://sjshb57.github.io/AnIncanescence/)**
 
 ---
 
 ## 关于她的一些碎片
 
-- 
-- 
-- 
-- 
+-
+-
+-
+-
 
 ---
 
