@@ -34,6 +34,7 @@
     📁 avatar/
     📁 html/
     📁 image/
+    📁 json/
     📁 video/
     📄 index.json
     📄 profile.json
