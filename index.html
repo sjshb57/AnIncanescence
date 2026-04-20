@@ -712,7 +712,7 @@ async function loadProfile() {
     document.getElementById('p-username').textContent = c.username || '';
     document.getElementById('p-bio').textContent      = c.bio      || '';
     if (c.avatar) document.getElementById('p-avatar').src = `wayback_snapshots/${c.avatar}`;
-    if (c.banner) document.getElementById('p-banner').src = `local/wayback_snapshots/${c.banner}`;
+    if (c.banner) document.getElementById('p-banner').src = `wayback_snapshots/${c.banner}`;
     if (c.location) document.getElementById('p-loc').innerHTML  = `📍 ${esc(c.location)}`;
     if (c.link) {
       const d = c.link.replace(/^https?:\/\//,'');
