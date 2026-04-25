@@ -676,16 +676,13 @@ body.light .post-iframe-wrap { background: #ffffff; }
     pointer-events: auto;
   }
 
-  /* ───── 顶部汉堡按钮（轻量化）─────
+  /* ───── 汉堡按钮（共用基础样式）─────
      默认完全无边框无背景，只显示三条浅线
      悬停/激活/抽屉打开时才有微弱背景 */
   .menu-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 8px;
-    left: 8px;
     width: 36px;
     height: 36px;
     border-radius: 10px;
@@ -693,12 +690,25 @@ body.light .post-iframe-wrap { background: #ffffff; }
     border: none;
     box-shadow: none;
     cursor: pointer;
-    z-index: 998;
     line-height: 1;
     transition: background 0.15s;
     -webkit-tap-highlight-color: transparent;
+    padding: 0;
   }
-  /* 三条线 —— 默认非常浅淡（不点击时几乎只是装饰，但能看到）*/
+  /* 状态A：banner 上的汉堡按钮（absolute 定位、跟随滚动） */
+  .menu-toggle-banner {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 5;  /* 高于 banner 但不影响主题按钮 */
+  }
+  /* 状态B：搜索栏内的汉堡按钮（默认隐藏，搜索栏吸顶时由 JS 显示） */
+  .menu-toggle-search {
+    display: none;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+  /* 三条线 —— 默认非常浅淡 */
   .menu-toggle::before {
     content: "";
     display: block;
@@ -711,14 +721,24 @@ body.light .post-iframe-wrap { background: #ffffff; }
     border-radius: 1px;
     transition: background 0.15s, box-shadow 0.15s;
   }
-  /* 浅色主题：三条线用半透明深色 */
-  body.light .menu-toggle::before {
-    background: rgba(40, 40, 40, 0.45);
+  /* 浅色主题下，banner 按钮三条线仍要在彩色 banner 上能看清 */
+  body.light .menu-toggle-banner::before {
+    background: rgba(255, 255, 255, 0.7);
     box-shadow:
-      0 -5px 0 rgba(40, 40, 40, 0.45),
-      0 5px 0 rgba(40, 40, 40, 0.45);
+      0 -5px 0 rgba(255, 255, 255, 0.7),
+      0 5px 0 rgba(255, 255, 255, 0.7);
   }
-  /* 点击/触摸：浅淡背景 + 三条线变深更鲜明 */
+  /* 浅色主题下，搜索栏按钮在白底上需要深色三线 */
+  body.light .menu-toggle-search::before {
+    background: rgba(40, 40, 40, 0.7);
+    box-shadow:
+      0 -5px 0 rgba(40, 40, 40, 0.7),
+      0 5px 0 rgba(40, 40, 40, 0.7);
+  }
+  /* 暗色主题下，搜索栏按钮在暗底上仍用白色三线（保持) */
+  /* （已被基础规则覆盖，无需额外） */
+
+  /* 点击/激活：浅淡背景 + 三条线变深更鲜明 */
   .menu-toggle:active,
   .menu-toggle.active {
     background: rgba(0, 0, 0, 0.12);
@@ -742,6 +762,22 @@ body.light .post-iframe-wrap { background: #ffffff; }
       0 5px 0 rgba(20, 20, 20, 0.9);
   }
 
+  /* 当 .stuck 类加到 sticky-area 上时（JS 检测搜索栏吸顶），
+     显示搜索栏按钮 */
+  .sticky-area.stuck .menu-toggle-search {
+    display: flex;
+  }
+
+  /* 搜索栏布局：让按钮和输入框水平排列 */
+  .search-area {
+    display: flex;
+    align-items: center;
+  }
+  .search-inner {
+    flex: 1;
+    min-width: 0;
+  }
+
   .profile-header { position: relative; }
 }
 
@@ -751,8 +787,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
 </head>
 <body>
 
-<!-- 手机端汉堡按钮（仅 ≤640px 显示） -->
-<button class="menu-toggle" id="menu-toggle" aria-label="打开菜单" onclick="toggleSidebar()"></button>
+<!-- 手机端抽屉的遮罩（仅 ≤640px 显示） -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div class="layout">
@@ -779,6 +814,8 @@ body.light .post-iframe-wrap { background: #ffffff; }
 
       <div class="profile-header">
         <img class="banner" id="p-banner" src="" alt="">
+        <!-- 手机端：banner 上的汉堡按钮（跟随滚动） -->
+        <button class="menu-toggle menu-toggle-banner" id="menu-toggle-banner" aria-label="打开菜单" onclick="toggleSidebar()"></button>
         <div class="profile-info">
           <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
           <img class="avatar-img" id="p-avatar" src="" alt="">
@@ -797,6 +834,8 @@ body.light .post-iframe-wrap { background: #ffffff; }
       <!-- 搜索 + Tab 吸顶区域 -->
       <div class="sticky-area">
         <div class="search-area">
+          <!-- 手机端：吸顶后显示在搜索栏左侧的汉堡按钮 -->
+          <button class="menu-toggle menu-toggle-search" id="menu-toggle-search" aria-label="打开菜单" onclick="toggleSidebar()"></button>
           <div class="search-inner">
             <span class="search-icon">🔍</span>
             <input type="text" id="search-input" placeholder="搜索关键词或日期…" autocomplete="off" spellcheck="false">
@@ -1021,6 +1060,36 @@ function closeSidebar() {
 /* 选中日期后自动收起抽屉（仅手机端） */
 function autoCloseSidebarOnMobile() {
   if (isMobile()) closeSidebar();
+}
+
+/* 搜索栏吸顶检测：在 sticky-area 上方放一个 1px 的 sentinel，
+   当它滚出视口顶部时说明 sticky-area 已经吸顶——给 sticky-area 加 .stuck 类。
+   .stuck 的 CSS 会在手机模式下显示搜索栏内的汉堡按钮。 */
+function setupStickyDetector() {
+  const sticky = document.querySelector('.sticky-area');
+  if (!sticky || !window.IntersectionObserver) return;
+
+  // sentinel：紧贴 sticky-area 上方
+  const sentinel = document.createElement('div');
+  sentinel.style.cssText = 'height:1px;width:100%;';
+  sticky.parentNode.insertBefore(sentinel, sticky);
+
+  // 监测主列的滚动容器（手机端是 .main-col 自己滚动）
+  const root = document.getElementById('main-col');
+
+  const obs = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      // sentinel 不在视口里 -> sticky-area 已吸顶
+      sticky.classList.toggle('stuck', !e.isIntersecting);
+    }
+  }, { root: root, threshold: 0 });
+  obs.observe(sentinel);
+}
+/* 页面加载完后启动 */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupStickyDetector);
+} else {
+  setupStickyDetector();
 }
 
 /* ── 日视图 ───────────────────────────────────────────── */
@@ -1291,6 +1360,63 @@ function injectFitHeight(iframe) {
         width:600px!important;
         max-width:100%!important;
         align-items:stretch!important;
+      }
+
+      /* ─── 手机端适配：缩小字号 + 紧凑间距 ─── */
+      @media (max-width: 640px) {
+        body > .tweet-container {
+          width: 100% !important;
+        }
+        /* 推文正文：从约19px降到15px（贴近 Twitter 移动端） */
+        .tweet-content {
+          font-size: 15px !important;
+          line-height: 1.45 !important;
+        }
+        /* 推文头部：作者名/句柄 */
+        .tweet-author-name { font-size: 15px !important; }
+        .tweet-author-username, .date { font-size: 13px !important; }
+        /* embedded 引用推文 */
+        .embedded-tweet-container .tweet-author-name { font-size: 14px !important; }
+        .embedded-tweet-container .tweet-author-username,
+        .embedded-tweet-container .date { font-size: 12px !important; }
+        .embedded-tweet-container .tweet-content { font-size: 14px !important; }
+        /* 头像缩小 —— 必须同时设父 div 和 img，且禁止 flex 压缩 */
+        .tweet-author-profile-image {
+          width: 40px !important;
+          height: 40px !important;
+          min-width: 40px !important;
+          min-height: 40px !important;
+          max-width: 40px !important;
+          max-height: 40px !important;
+          flex-shrink: 0 !important;
+          flex-grow: 0 !important;
+        }
+        .tweet-author-profile-image img {
+          width: 40px !important;
+          height: 40px !important;
+          min-width: 40px !important;
+          min-height: 40px !important;
+          max-width: 40px !important;
+          max-height: 40px !important;
+        }
+        .embedded-tweet-container .tweet-author-profile-image,
+        .embedded-tweet-container .tweet-author-profile-image img {
+          width: 22px !important;
+          height: 22px !important;
+          min-width: 22px !important;
+          min-height: 22px !important;
+          max-width: 22px !important;
+          max-height: 22px !important;
+        }
+        .embedded-tweet-container .tweet-author-profile-image {
+          flex-shrink: 0 !important;
+          flex-grow: 0 !important;
+        }
+        /* 图片不超出宽度 */
+        img.tweet-image, video.tweet-video {
+          max-width: 100% !important;
+          height: auto !important;
+        }
       }
     `;
   } catch(e) {}
