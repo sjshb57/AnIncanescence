@@ -565,11 +565,147 @@ body.light .post-iframe-wrap { background: #ffffff; }
 @media (max-width: 1100px) { .right-panel { display: none; } }
 @media (max-width: 900px)  { .sidebar { width: 200px; } .main-col-wrap { width: auto; flex: 1; } }
 
+/* ════════════════════════════════════════════════════════
+   手机端适配（≤640px）：单列布局 + 抽屉式日期树
+════════════════════════════════════════════════════════ */
+.menu-toggle {
+  display: none;  /* 默认隐藏，手机模式才出现 */
+}
+.sidebar-overlay {
+  display: none;  /* 默认隐藏的遮罩 */
+}
+
+@media (max-width: 640px) {
+  /* 主列占满宽度 */
+  .layout { max-width: 100%; }
+  .main-col-wrap { width: 100%; }
+  .main-col {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* profile-header 紧凑化 */
+  .banner { height: 130px; }
+  .profile-info { padding: 12px 14px 14px; }
+  .avatar-img { width: 64px; height: 64px; margin-top: -38px; }
+  .p-name { font-size: 18px; }
+  .p-bio { font-size: 13px; line-height: 1.55; }
+
+  /* 主题按钮稍小 */
+  .theme-toggle-btn {
+    width: 32px; height: 32px; font-size: 16px;
+    top: 8px; right: 10px;
+  }
+
+  /* 搜索框 + tab 内边距收缩 */
+  .search-area, .tab-bar, .day-topbar { padding-left: 12px; padding-right: 12px; }
+  .day-topbar { padding-top: 12px; padding-bottom: 8px; }
+  .day-heading { font-size: 16px; }
+
+  /* 内容区给一点呼吸 */
+  .content-area { padding: 0 8px 24px; }
+
+  /* 自定义滚动条隐藏，让用户用原生滚动 */
+  .custom-scrollbar { display: none; }
+  .main-col {
+    overflow-y: auto;          /* 改用原生滚动 */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 侧边栏变抽屉：默认在屏幕外，开启时滑入 */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 78%;
+    max-width: 320px;
+    height: 100vh;
+    z-index: 1000;
+    background: var(--bg);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* 抽屉遮罩：覆盖在主内容上，点击关闭抽屉 */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .sidebar-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 顶部汉堡按钮 */
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    cursor: pointer;
+    z-index: 998;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+    transition: background 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 浅色主题：白底毛玻璃 */
+  body.light .menu-toggle {
+    background: rgba(255,255,255,0.85);
+    color: var(--text);
+  }
+  /* 深色主题（默认）：黑底毛玻璃 */
+  body:not(.light) .menu-toggle {
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+  }
+  .menu-toggle:active {
+    transform: scale(0.95);
+  }
+  /* 汉堡图标用CSS画三条线，避免依赖字体/emoji */
+  .menu-toggle::before {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: currentColor;
+    box-shadow: 0 -6px 0 currentColor, 0 6px 0 currentColor;
+  }
+
+  /* banner 上方留白避免被汉堡按钮挡到推文头像 */
+  .profile-header { position: relative; }
+}
+
 @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .anim { animation: fadeUp .2s ease both; }
 </style>
 </head>
 <body>
+
+<!-- 手机端汉堡按钮（仅 ≤640px 显示） -->
+<button class="menu-toggle" id="menu-toggle" aria-label="打开菜单" onclick="toggleSidebar()"></button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div class="layout">
 
@@ -634,7 +770,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
         <div class="welcome">
           <div class="welcome-icon">✦</div>
           <div class="welcome-title">档案已就绪</div>
-          <div class="welcome-hint">从左侧选择日期，或在上方搜索关键词</div>
+          <div class="welcome-hint">选择日期浏览，或在上方搜索关键词</div>
         </div>
       </div>
 
@@ -822,6 +958,23 @@ function toggle(id){ document.getElementById(id).classList.toggle('open'); }
 function expandAll() { document.querySelectorAll('.tree-year,.tree-month').forEach(e=>e.classList.add('open')); }
 function collapseAll(){ document.querySelectorAll('.tree-year,.tree-month').forEach(e=>e.classList.remove('open')); }
 
+/* ── 手机端抽屉控制（≤640px）─────────────────────────── */
+function isMobile() { return window.matchMedia('(max-width: 640px)').matches; }
+function toggleSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('show', open);
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+/* 选中日期后自动收起抽屉（仅手机端） */
+function autoCloseSidebarOnMobile() {
+  if (isMobile()) closeSidebar();
+}
+
 /* ── 日视图 ───────────────────────────────────────────── */
 function selectDay(dk) {
   if (searchMode) exitSearch();
@@ -840,6 +993,9 @@ function selectDay(dk) {
   document.getElementById('day-heading').innerHTML =
     `${y}年${m}月${d}日<span class="dim">${items.length} 篇</span>`;
   renderDayView(items);
+
+  // 手机端选完日期自动关抽屉
+  autoCloseSidebarOnMobile();
 
   // 中间主列滚动到"日期标题条"(day-topbar) 刚好贴在 sticky-area 下方
   setTimeout(() => {
