@@ -584,17 +584,47 @@ body.light .post-iframe-wrap { background: #ffffff; }
     padding-right: 0;
   }
 
-  /* profile-header 紧凑化 */
+  /* ───── Profile 头部紧凑化（贴近 Twitter 手机端布局）───── */
   .banner { height: 130px; }
-  .profile-info { padding: 12px 14px 14px; }
-  .avatar-img { width: 64px; height: 64px; margin-top: -38px; }
-  .p-name { font-size: 18px; }
-  .p-bio { font-size: 13px; line-height: 1.55; }
 
-  /* 主题按钮稍小 */
+  .profile-info {
+    padding: 8px 14px 12px;
+  }
+  /* 头像：比桌面小，整个露出在 banner 下方但有一半压在 banner 上
+     桌面 80×80（4px边框=88×88，-45px 让44px压在banner上）
+     手机 56×56（3px边框=62×62，-31px 让一半压在banner上）*/
+  .avatar-img {
+    width: 56px;
+    height: 56px;
+    border-width: 3px;
+    top: -31px;
+    left: 14px;
+  }
+  /* 姓名行紧贴头像下方 */
+  .profile-names {
+    margin-top: 32px;   /* 头像露出在 banner 下方部分 (28px) + 一点呼吸 (4px) */
+  }
+  .p-name {
+    font-size: 17px;
+    line-height: 1.25;
+  }
+  .p-user {
+    font-size: 14px;
+  }
+  .p-bio {
+    margin: 10px 0 6px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .p-meta {
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  /* 主题按钮：和头像在同一水平位置 banner 下方右侧 */
   .theme-toggle-btn {
     width: 32px; height: 32px; font-size: 16px;
-    top: 8px; right: 10px;
+    top: 14px; right: 14px;
   }
 
   /* 搜索框 + tab 内边距收缩 */
@@ -608,7 +638,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
   /* 自定义滚动条隐藏，让用户用原生滚动 */
   .custom-scrollbar { display: none; }
   .main-col {
-    overflow-y: auto;          /* 改用原生滚动 */
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -630,7 +660,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
     transform: translateX(0);
   }
 
-  /* 抽屉遮罩：覆盖在主内容上，点击关闭抽屉 */
+  /* 抽屉遮罩 */
   .sidebar-overlay {
     display: block;
     position: fixed;
@@ -646,54 +676,72 @@ body.light .post-iframe-wrap { background: #ffffff; }
     pointer-events: auto;
   }
 
-  /* 顶部汉堡按钮 */
+  /* ───── 顶部汉堡按钮（轻量化）─────
+     默认完全无边框无背景，只显示三条浅线
+     悬停/激活/抽屉打开时才有微弱背景 */
   .menu-toggle {
     display: flex;
     align-items: center;
     justify-content: center;
     position: fixed;
-    top: 10px;
-    left: 10px;
-    width: 38px;
-    height: 38px;
+    top: 8px;
+    left: 8px;
+    width: 36px;
+    height: 36px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    background: transparent;
+    border: none;
+    box-shadow: none;
     cursor: pointer;
     z-index: 998;
-    color: var(--text);
-    font-size: 18px;
     line-height: 1;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.15s;
     -webkit-tap-highlight-color: transparent;
   }
-  /* 浅色主题：白底毛玻璃 */
-  body.light .menu-toggle {
-    background: rgba(255,255,255,0.85);
-    color: var(--text);
-  }
-  /* 深色主题（默认）：黑底毛玻璃 */
-  body:not(.light) .menu-toggle {
-    background: rgba(0,0,0,0.55);
-    color: #fff;
-  }
-  .menu-toggle:active {
-    transform: scale(0.95);
-  }
-  /* 汉堡图标用CSS画三条线，避免依赖字体/emoji */
+  /* 三条线 —— 默认非常浅淡（不点击时几乎只是装饰，但能看到）*/
   .menu-toggle::before {
     content: "";
     display: block;
-    width: 18px;
-    height: 2px;
-    background: currentColor;
-    box-shadow: 0 -6px 0 currentColor, 0 6px 0 currentColor;
+    width: 17px;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow:
+      0 -5px 0 rgba(255, 255, 255, 0.55),
+      0 5px 0 rgba(255, 255, 255, 0.55);
+    border-radius: 1px;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  /* 浅色主题：三条线用半透明深色 */
+  body.light .menu-toggle::before {
+    background: rgba(40, 40, 40, 0.45);
+    box-shadow:
+      0 -5px 0 rgba(40, 40, 40, 0.45),
+      0 5px 0 rgba(40, 40, 40, 0.45);
+  }
+  /* 点击/触摸：浅淡背景 + 三条线变深更鲜明 */
+  .menu-toggle:active,
+  .menu-toggle.active {
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .menu-toggle:active::before,
+  .menu-toggle.active::before {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow:
+      0 -5px 0 rgba(255, 255, 255, 0.95),
+      0 5px 0 rgba(255, 255, 255, 0.95);
+  }
+  body.light .menu-toggle:active,
+  body.light .menu-toggle.active {
+    background: rgba(0, 0, 0, 0.08);
+  }
+  body.light .menu-toggle:active::before,
+  body.light .menu-toggle.active::before {
+    background: rgba(20, 20, 20, 0.9);
+    box-shadow:
+      0 -5px 0 rgba(20, 20, 20, 0.9),
+      0 5px 0 rgba(20, 20, 20, 0.9);
   }
 
-  /* banner 上方留白避免被汉堡按钮挡到推文头像 */
   .profile-header { position: relative; }
 }
 
