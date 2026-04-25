@@ -38,8 +38,9 @@
     📁 video/
     📄 index.json
     📄 profile.json
-📄 .nojekyll    
-📄 README.md    
+📄 .nojekyll
+📄 README.md
+📄 _list_media.txt
 📄 _url_list.txt
 📄 index.html
 ```
