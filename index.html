@@ -1397,34 +1397,35 @@ function injectFitHeight(iframe) {
         .embedded-tweet-container .tweet-author-username,
         .embedded-tweet-container .date { font-size: 12px !important; }
         .embedded-tweet-container .tweet-content { font-size: 14px !important; }
-        /* 头像缩小 —— 必须同时设父 div 和 img，且禁止 flex 压缩 */
+        /* 主推文头像：48×48（比回复区头像 40×40 略大，作为视觉焦点）*/
         .tweet-author-profile-image {
-          width: 40px !important;
-          height: 40px !important;
-          min-width: 40px !important;
-          min-height: 40px !important;
-          max-width: 40px !important;
-          max-height: 40px !important;
+          width: 48px !important;
+          height: 48px !important;
+          min-width: 48px !important;
+          min-height: 48px !important;
+          max-width: 48px !important;
+          max-height: 48px !important;
           flex-shrink: 0 !important;
           flex-grow: 0 !important;
           margin-right: 5px !important;
         }
         .tweet-author-profile-image img {
-          width: 40px !important;
-          height: 40px !important;
-          min-width: 40px !important;
-          min-height: 40px !important;
-          max-width: 40px !important;
-          max-height: 40px !important;
+          width: 48px !important;
+          height: 48px !important;
+          min-width: 48px !important;
+          min-height: 48px !important;
+          max-width: 48px !important;
+          max-height: 48px !important;
         }
+        /* embedded 引用框头像：32×32（比主推文 48 小一档，但不会小到不合理）*/
         .embedded-tweet-container .tweet-author-profile-image,
         .embedded-tweet-container .tweet-author-profile-image img {
-          width: 22px !important;
-          height: 22px !important;
-          min-width: 22px !important;
-          min-height: 22px !important;
-          max-width: 22px !important;
-          max-height: 22px !important;
+          width: 32px !important;
+          height: 32px !important;
+          min-width: 32px !important;
+          min-height: 32px !important;
+          max-width: 32px !important;
+          max-height: 32px !important;
         }
         .embedded-tweet-container .tweet-author-profile-image {
           flex-shrink: 0 !important;
