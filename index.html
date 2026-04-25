@@ -563,7 +563,8 @@ body.light .post-iframe-wrap { background: #ffffff; }
 .credit-box b { color: var(--text); }
 
 @media (max-width: 1100px) { .right-panel { display: none; } }
-@media (max-width: 900px)  { .sidebar { width: 200px; } .main-col-wrap { width: auto; flex: 1; } }
+/* 平板（901-1100px）：侧边栏窄一点 */
+@media (min-width: 901px) and (max-width: 1100px) { .sidebar { width: 200px; } .main-col-wrap { width: auto; flex: 1; } }
 
 /* ════════════════════════════════════════════════════════
    手机端适配（≤640px）：单列布局 + 抽屉式日期树
@@ -575,7 +576,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
   display: none;  /* 默认隐藏的遮罩 */
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   /* 主列占满宽度 */
   .layout { max-width: 100%; }
   .main-col-wrap { width: 100%; }
@@ -584,25 +585,24 @@ body.light .post-iframe-wrap { background: #ffffff; }
     padding-right: 0;
   }
 
-  /* ───── Profile 头部紧凑化（贴近 Twitter 手机端布局）───── */
-  .banner { height: 130px; }
+  /* ───── Profile 头部（贴近 Twitter 手机端布局）───── */
+  .banner { height: 170px; }
 
   .profile-info {
     padding: 8px 14px 12px;
   }
-  /* 头像：比桌面小，整个露出在 banner 下方但有一半压在 banner 上
-     桌面 80×80（4px边框=88×88，-45px 让44px压在banner上）
-     手机 56×56（3px边框=62×62，-31px 让一半压在banner上）*/
+  /* 头像：和 Twitter 移动端比例一致，约占 banner 高度的 60%
+     手机 100×100（3px边框=106×106，-55px 让一半压在 banner 上）*/
   .avatar-img {
-    width: 56px;
-    height: 56px;
+    width: 100px;
+    height: 100px;
     border-width: 3px;
-    top: -31px;
+    top: -55px;
     left: 14px;
   }
   /* 姓名行紧贴头像下方 */
   .profile-names {
-    margin-top: 32px;   /* 头像露出在 banner 下方部分 (28px) + 一点呼吸 (4px) */
+    margin-top: 56px;   /* 头像露出在 banner 下方的 50px + 一点呼吸 */
   }
   .p-name {
     font-size: 17px;
@@ -628,7 +628,8 @@ body.light .post-iframe-wrap { background: #ffffff; }
   }
 
   /* 搜索框 + tab 内边距收缩 */
-  .search-area, .tab-bar, .day-topbar { padding-left: 12px; padding-right: 12px; }
+  .search-area { padding-left: 4px; padding-right: 12px; }
+  .tab-bar, .day-topbar { padding-left: 12px; padding-right: 12px; }
   .day-topbar { padding-top: 12px; padding-bottom: 8px; }
   .day-heading { font-size: 16px; }
 
@@ -706,7 +707,8 @@ body.light .post-iframe-wrap { background: #ffffff; }
   .menu-toggle-search {
     display: none;
     flex-shrink: 0;
-    margin-right: 8px;
+    margin-right: 0;
+    margin-left: -4px;  /* 往左挤一点，减少和搜索框的间距 */
   }
   /* 三条线 —— 默认非常浅淡 */
   .menu-toggle::before {
@@ -1046,7 +1048,7 @@ function expandAll() { document.querySelectorAll('.tree-year,.tree-month').forEa
 function collapseAll(){ document.querySelectorAll('.tree-year,.tree-month').forEach(e=>e.classList.remove('open')); }
 
 /* ── 手机端抽屉控制（≤640px）─────────────────────────── */
-function isMobile() { return window.matchMedia('(max-width: 640px)').matches; }
+function isMobile() { return window.matchMedia('(max-width: 900px)').matches; }
 function toggleSidebar() {
   const sb = document.querySelector('.sidebar');
   const ov = document.getElementById('sidebar-overlay');
@@ -1363,9 +1365,24 @@ function injectFitHeight(iframe) {
       }
 
       /* ─── 手机端适配：缩小字号 + 紧凑间距 ─── */
-      @media (max-width: 640px) {
+      @media (max-width: 900px) {
         body > .tweet-container {
           width: 100% !important;
+          max-width: 100% !important;
+          /* 强制 border-box，让 padding 算入 width 内（防止内容溢出 iframe）*/
+          box-sizing: border-box !important;
+          /* 缩小卡片左右 padding */
+          padding: 12px !important;
+        }
+        /* 同样修 nonjsonview，避免它内部撑开 */
+        #nonjsonview {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        /* embedded 引用框也要修 */
+        .embedded-tweet-container {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
         }
         /* 推文正文：从约19px降到15px（贴近 Twitter 移动端） */
         .tweet-content {
