@@ -1124,6 +1124,19 @@ function fixImagesInFrame(iframe) {
       }
     });
 
+    // 1b. 处理外层视频：只保留 media_key 在 wanted_videos 里的
+    const wantedVideoKeys = (item.wanted_videos || []).map(p => extractVideoKey(p));
+    const outerVideos = nonjson.querySelectorAll('.tweet-content > video');
+    outerVideos.forEach(video => {
+      if (embedded && embedded.contains(video)) return;
+      // 从 source src 提取 media_key
+      const srcEl = video.querySelector('source');
+      const vKey = srcEl ? extractVideoKey(srcEl.getAttribute('src') || '') : '';
+      if (!wantedVideoKeys.includes(vKey)) {
+        video.remove();
+      }
+    });
+
     // 2. 处理 embedded：插入 embedded_images 里的图（如果尚未插入）
     if (embedded && item.embedded_images && item.embedded_images.length > 0) {
       // 标记防止重复插入
@@ -1145,6 +1158,31 @@ function fixImagesInFrame(iframe) {
             embContent.appendChild(img);
           });
           embedded.dataset.imgsInjected = '1';
+        }
+      }
+    }
+
+    // 2b. 处理 embedded 视频：插入 embedded_videos（如果尚未插入）
+    if (embedded && item.embedded_videos && item.embedded_videos.length > 0) {
+      if (!embedded.dataset.videosInjected) {
+        const embContent = embedded.querySelector('.tweet-content');
+        if (embContent) {
+          const seenV = new Set();
+          item.embedded_videos.forEach(p => {
+            const vk = extractVideoKey(p);
+            if (seenV.has(vk)) return;
+            seenV.add(vk);
+            const video = doc.createElement('video');
+            video.className = 'tweet-image tweet-video';
+            video.controls = true;
+            video.preload = 'metadata';
+            const source = doc.createElement('source');
+            source.src = p;
+            source.type = 'video/mp4';
+            video.appendChild(source);
+            embContent.appendChild(video);
+          });
+          embedded.dataset.videosInjected = '1';
         }
       }
     }
@@ -1238,6 +1276,17 @@ function extractBasename(src) {
   if (m) return m[1];
   // 兜底：单扩展
   m = src.match(/_media_(.+?)\.(?:jpg|png|gif|webp|jpeg)(?:[?#]|$)/i);
+  return m ? m[1] : '';
+}
+
+/* 从视频 src 里提取 media_key 数字部分（和 build_index.py 的 build_video_index 索引一致）
+   本地文件名或 URL 格式：
+     - ..._amplify_video_2040869759278080000_..._mp4.mp4
+     - ..._ext_tw_video_1911056663718567937_...mp4
+     - ..._video_twimg_com_amplify_video_2040869759278080000_... */
+function extractVideoKey(src) {
+  if (!src) return '';
+  const m = src.match(/(?:amplify_video|ext_tw_video|tweet_video)[/_](\d+)/);
   return m ? m[1] : '';
 }
 
