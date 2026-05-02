@@ -781,7 +781,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
     margin-right: 0;     /* 取消和搜索框之间的间距 */
     margin-left: -4px;   /* 往左挤一点 */
   }
-  /* 三条线 —— 默认非常浅淡 */
+  /* 三条线 —— 默认非常浅淡 + 加阴影确保各色 banner 都能看清 */
   .menu-toggle::before {
     content: "";
     display: block;
@@ -792,14 +792,17 @@ body.light .post-iframe-wrap { background: #ffffff; }
       0 -5px 0 rgba(255, 255, 255, 0.85),
       0 5px 0 rgba(255, 255, 255, 0.85);
     border-radius: 1px;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
     transition: background 0.15s, box-shadow 0.15s;
   }
-  /* 浅色主题下，banner 按钮三条线仍要在彩色 banner 上能看清 */
+  /* 浅色主题下，banner 按钮三条线 —— 用半透明深色 + 白色描边阴影
+     这样不管 banner 是彩色渐变还是白色/黑色都能看清 */
   body.light .menu-toggle-banner::before {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(40, 40, 40, 0.85);
     box-shadow:
-      0 -5px 0 rgba(255, 255, 255, 0.95),
-      0 5px 0 rgba(255, 255, 255, 0.95);
+      0 -5px 0 rgba(40, 40, 40, 0.85),
+      0 5px 0 rgba(40, 40, 40, 0.85);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
   }
   /* 浅色主题下，搜索栏按钮在白底上需要深色三线 */
   body.light .menu-toggle-search::before {
@@ -983,7 +986,10 @@ body.light .post-iframe-wrap { background: #ffffff; }
 // 路径前缀（多账号支持）：根据当前账号 dir 动态调整
 // Electron 走  协议；当只有一个账号时账号清单为空，等同单账号场景
 // _accounts 是 main.js 暴露的虚拟路径，会动态扫 accounts/ 下所有子目录的 profile.json
-const ACCOUNTS_LIST_PATH = 'accounts.json';
+// GitHub Pages 是静态服务，无法扫目录。直接硬编码账号目录列表。
+// 增加新账号只需在数组里加一项目录名。
+// 其他信息（name/username/avatar/banner）从各自的 profile.json 自动读取。
+const ACCOUNTS_HARDCODED = ['AnIncandescence', 'TauCeti_10700'];
 let ACCOUNT_BASE   = '';                       // 资源根
 let DB_PATH        = 'wayback_snapshots/index.json';
 let PROFILE_PATH   = 'wayback_snapshots/profile.json';
@@ -1037,21 +1043,29 @@ async function init() {
 
 /* ── 多账号 ─────────────────────────────────────────── */
 async function loadAccounts() {
-  try {
-    const r = await fetch(ACCOUNTS_LIST_PATH);
-    if (!r.ok) return;
-    const list = await r.json();
-    if (!Array.isArray(list) || list.length === 0) return;
-    accounts = list;
-    // 决定当前账号：localStorage > 第一个
-    const remembered = localStorage.getItem('reader-account');
-    currentAccount = (remembered && accounts.find(a => a.dir === remembered)) || accounts[0];
-    applyAccountPaths(currentAccount);
-    renderAccountSwitcher();
-  } catch (e) {
-    // accounts.json 不存在 → 单账号模式（默认路径已经是兼容的）
-    console.info('accounts.json 不存在，使用单账号模式');
-  }
+  if (!Array.isArray(ACCOUNTS_HARDCODED) || ACCOUNTS_HARDCODED.length === 0) return;
+  // 并发加载每个账号的 profile.json，组合成账号清单
+  const tasks = ACCOUNTS_HARDCODED.map(async (dir) => {
+    try {
+      const r = await fetch(`accounts/${dir}/wayback_snapshots/profile.json`);
+      if (!r.ok) return { dir, name: dir, username: dir, avatar: '' };
+      const c = await r.json();
+      return {
+        dir,
+        name: c.name || dir,
+        username: (c.username || dir).replace(/^@/, ''),
+        avatar: c.avatar ? `accounts/${dir}/wayback_snapshots/${c.avatar}` : '',
+      };
+    } catch (e) {
+      return { dir, name: dir, username: dir, avatar: '' };
+    }
+  });
+  accounts = await Promise.all(tasks);
+  // 决定当前账号：localStorage > 第一个
+  const remembered = localStorage.getItem('reader-account');
+  currentAccount = (remembered && accounts.find(a => a.dir === remembered)) || accounts[0];
+  applyAccountPaths(currentAccount);
+  renderAccountSwitcher();
 }
 
 async function loadCurrentAccount() {
