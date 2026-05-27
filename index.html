@@ -1415,7 +1415,7 @@ function renderTweetsTab(sorted, area, showPinned = false) {
   if (showPinned) {
     const pinnedItem = db.find(i => i.is_pinned && !i.is_virtual);
     if (pinnedItem) {
-      const src = `${ASSET_BASE}${pinnedItem.file}`;
+      const src = `${HTML_BASE}${pinnedItem.file}`;
       pinnedHtml = `
       <div class="pinned-block">
         <div class="pinned-block-label">📌 已置顶</div>
@@ -2433,7 +2433,7 @@ function linkifyText(text) {
   if (!text) return '';
   let s = esc(text);
   s = s.replace(/(https?:\/\/[^\s&lt;&gt;&amp;"]+)/g, '<a href="$1" target="_blank" style="color:var(--accent,#1d9bf0)">$1</a>');
-  s = s.replace(/@([A-Za-z0-9_]+)/g, '<a href="https://x.com/$1" target="_blank" style="color:var(--accent,#1d9bf0)">@$1</a>');
+  s = s.replace(/@([A-Za-z0-9_]+)/g, '<a href="https://twitter.com/$1" target="_blank" style="color:var(--accent,#1d9bf0)">@$1</a>');
   return s;
 }
 
@@ -2446,7 +2446,7 @@ function renderBioWithEntities(text, entities) {
   const items = [
     ...(entities.mentions || []).map(m => ({
       start: m.start, end: m.end,
-      html: `<a href="https://x.com/${esc(m.username)}" target="_blank" style="color:var(--accent,#1d9bf0)">@${esc(m.username)}</a>`
+      html: `<a href="https://twitter.com/${esc(m.username)}" target="_blank" style="color:var(--accent,#1d9bf0)">@${esc(m.username)}</a>`
     })),
     ...(entities.urls || []).map(u => ({
       start: u.start, end: u.end,
