@@ -624,8 +624,8 @@ body.light .post-iframe-wrap { background: #ffffff; }
 .recent-item { padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .15s; }
 .recent-pinned { border-left: 3px solid var(--accent,#1d9bf0); padding-left: 8px; }
 .pinned-label { font-size: 11px; color: var(--accent,#1d9bf0); margin-bottom: 2px; font-weight: 600; }
-.pinned-block { border-left: 3px solid var(--accent,#1d9bf0); margin-bottom: 16px; padding-left: 0; }
-.pinned-block-label { font-size: 12px; color: var(--accent,#1d9bf0); font-weight: 700; padding: 6px 12px 4px; display: flex; align-items: center; gap: 4px; }
+.pinned-block { margin-bottom: 16px; }
+.pinned-block-label { font-size: 12px; color: var(--accent,#1d9bf0); font-weight: 700; padding: 6px 0 4px; display: flex; align-items: center; gap: 4px; }
 .recent-item:last-child { border-bottom: none; }
 .recent-item:hover { opacity: .7; }
 .recent-date { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 2px; }
@@ -1419,8 +1419,14 @@ function renderTweetsTab(sorted, area, showPinned = false) {
       pinnedHtml = `
       <div class="pinned-block">
         <div class="pinned-block-label">📌 已置顶</div>
-        <iframe class="tweet-frame" src="${esc(src)}"
-          onload="onFrameLoad(this)" style="opacity:0"></iframe>
+        <div class="post-iframe-wrap">
+          <iframe class="post-iframe"
+            src="${esc(src)}"
+            scrolling="no"
+            onload="onFrameLoad(this)"
+            sandbox="allow-scripts allow-same-origin allow-popups">
+          </iframe>
+        </div>
       </div>`;
     }
   }
