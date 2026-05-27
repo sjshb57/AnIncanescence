@@ -1594,6 +1594,7 @@ function toggleReplies(toggleEl) {
 
 /* ── iframe 加载 ──────────────────────────────────────── */
 function onFrameLoad(iframe) {
+  iframe.style.opacity = '1';  // 确保 iframe 可见（置顶 iframe 初始 opacity:0）
   injectFitHeight(iframe);  // 先去掉 body min-height:100vh 让内容自适应
   injectTheme(iframe);
   // 推文tab展开的回复iframe：隐藏embedded-tweet-container（避免重复显示主推文内容）
@@ -2433,35 +2434,29 @@ function linkifyText(text) {
   if (!text) return '';
   let s = esc(text);
   s = s.replace(/(https?:\/\/[^\s&lt;&gt;&amp;"]+)/g, '<a href="$1" target="_blank" style="color:var(--accent,#1d9bf0)">$1</a>');
-  s = s.replace(/@([A-Za-z0-9_]+)/g, '<a href="https://twitter.com/$1" target="_blank" style="color:var(--accent,#1d9bf0)">@$1</a>');
+  s = s.replace(/@([A-Za-z0-9_]+)/g, '<a href="https://x.com/$1" target="_blank" style="color:var(--accent,#1d9bf0)">@$1</a>');
   return s;
 }
 
 /* 用 profile.json 里的 bio_entities 精确渲染 bio 链接（有 entities 用 entities，否则 fallback 到 linkifyText） */
 function renderBioWithEntities(text, entities) {
   if (!text) return '';
-  if (!entities || (!entities.mentions?.length && !entities.urls?.length)) {
-    return linkifyText(text);
+  const accentStyle = 'color:var(--accent,#1d9bf0)';
+  let result = esc(text);
+  // 替换 URL：优先匹配 t.co 短链，其次匹配 display_url（bio 里可能已展开）
+  for (const u of ((entities?.urls) || [])) {
+    const link = `<a href="${esc(u.expanded_url)}" target="_blank" style="${accentStyle}">${esc(u.display_url)}</a>`;
+    const escapedTco     = esc(u.url);
+    const escapedDisplay = esc(u.display_url);
+    if (result.includes(escapedTco)) {
+      result = result.replace(escapedTco, link);
+    } else if (result.includes(escapedDisplay)) {
+      result = result.replace(escapedDisplay, link);
+    }
   }
-  const items = [
-    ...(entities.mentions || []).map(m => ({
-      start: m.start, end: m.end,
-      html: `<a href="https://twitter.com/${esc(m.username)}" target="_blank" style="color:var(--accent,#1d9bf0)">@${esc(m.username)}</a>`
-    })),
-    ...(entities.urls || []).map(u => ({
-      start: u.start, end: u.end,
-      html: `<a href="${esc(u.expanded_url)}" target="_blank" style="color:var(--accent,#1d9bf0)">${esc(u.display_url)}</a>`
-    }))
-  ].sort((a, b) => a.start - b.start);
-
-  let result = '';
-  let lastIdx = 0;
-  for (const item of items) {
-    result += esc(text.slice(lastIdx, item.start));
-    result += item.html;
-    lastIdx = item.end;
-  }
-  result += esc(text.slice(lastIdx));
+  // @用户名 统一用正则替换（不依赖 entities.mentions 是否完整）
+  result = result.replace(/@([A-Za-z0-9_]+)/g,
+    (_, name) => `<a href="https://x.com/${name}" target="_blank" style="${accentStyle}">@${name}</a>`);
   return result;
 }
 
