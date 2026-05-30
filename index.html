@@ -462,11 +462,116 @@ a:hover { text-decoration: underline; }
 .post-reply-badge svg { opacity: .5; }
 
 /* iframe 容器 */
-.post-iframe-wrap { width: 100%; background: #000000; }
+.post-iframe-wrap { width: 100%; background: #000000; position: relative; }
 body.light .post-iframe-wrap { background: #ffffff; }
 .post-iframe {
   width: 100%; border: none; display: block; min-height: 160px;
 }
+
+/* 分享按钮（浮在推文右上角，只图标无框）*/
+.share-btn {
+  position: absolute;
+  top: 10px; right: 12px;
+  z-index: 5;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color .15s, transform .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.share-btn:hover, .share-btn:active { color: var(--accent); transform: scale(1.12); }
+.share-btn svg { width: 19px; height: 19px; }
+
+/* 分享弹窗 */
+.share-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+  backdrop-filter: blur(2px);
+}
+.share-overlay.open { display: flex; }
+.share-dialog {
+  width: 100%; max-width: 460px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  animation: shareIn .2s cubic-bezier(.16,1,.3,1);
+}
+@keyframes shareIn { from { opacity:0; transform: translateY(12px) scale(.98); } to { opacity:1; transform:none; } }
+.share-dialog-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.share-dialog-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.share-close {
+  width: 30px; height: 30px; border: none; background: var(--bg-hover);
+  border-radius: 50%; color: var(--text-dim); cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+}
+.share-close:hover { color: var(--text); }
+.share-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.share-row-body { flex: 1; min-width: 0; }
+.share-row-label { font-size: 11px; color: var(--text-dim); margin-bottom: 3px; }
+.share-row-value {
+  font-size: 13px; color: var(--text);
+  background: var(--bg-hover);
+  border-radius: 8px; padding: 9px 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.share-copy {
+  flex-shrink: 0;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; cursor: pointer;
+  align-self: flex-end;
+  transition: background .15s;
+}
+.share-copy:hover { background: var(--accent-hover); }
+.share-copy.copied { background: #00ba7c; }
+
+/* 复制提示 toast */
+.share-toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: #00ba7c; color: #fff;
+  padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  z-index: 1100;
+}
+.share-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 图片放大 lightbox */
+.img-lightbox {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1200; padding: 24px;
+  cursor: zoom-out;
+}
+.img-lightbox.open { display: flex; }
+.img-lightbox img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 8px;
+  animation: shareIn .2s cubic-bezier(.16,1,.3,1);
+}
+.lightbox-close {
+  position: fixed; top: 18px; right: 18px;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,.12); border: none; border-radius: 50%;
+  color: #fff; font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.25); }
 
 /* ── 回复链展开区 ─────────────────────────────────────── */
 .replies-section {
@@ -625,7 +730,7 @@ body.light .post-iframe-wrap { background: #ffffff; }
 .recent-pinned { border-left: 3px solid var(--accent,#1d9bf0); padding-left: 8px; }
 .pinned-label { font-size: 11px; color: var(--accent,#1d9bf0); margin-bottom: 2px; font-weight: 600; }
 .pinned-block { margin-bottom: 16px; }
-.pinned-block-label { font-size: 14px; color: var(--accent,#1d9bf0); font-weight: 700; padding: 6px 0 4px; display: flex; align-items: center; gap: 4px; }
+.pinned-block-label { font-size: 15px; color: var(--accent,#1d9bf0); font-weight: 700; padding: 6px 0 4px; display: flex; align-items: center; gap: 4px; }
 .recent-item:last-child { border-bottom: none; }
 .recent-item:hover { opacity: .7; }
 .recent-date { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 2px; }
@@ -989,17 +1094,18 @@ body.light .post-iframe-wrap { background: #ffffff; }
 
 <script>
 // 路径前缀（多账号支持）：根据当前账号 dir 动态调整
-// Electron 走  协议；当只有一个账号时账号清单为空，等同单账号场景
-// _accounts 是 main.js 暴露的虚拟路径，会动态扫 accounts/ 下所有子目录的 profile.json
-// GitHub Pages 是静态服务，无法扫目录。直接硬编码账号目录列表。
-// 增加新账号只需在数组里加一项目录名。
-// 其他信息（name/username/avatar/banner）从各自的 profile.json 自动读取。
+// 环境检测：Electron 桌面版走 incr:// 协议，浏览器（GitHub Pages）走相对路径
+// Electron 下 _accounts 是 main.js 暴露的虚拟路径，会动态扫 accounts/ 下所有子目录的 profile.json
+// GitHub Pages 是静态服务无法扫目录，用下方硬编码的账号目录列表（Electron 模式会忽略它）。
+// 增加新账号只需在数组里加一项目录名；其他信息从各自的 profile.json 自动读取。
+const IS_ELECTRON = (location.protocol === 'incr:');
+const BASE = IS_ELECTRON ? 'incr://local/' : '';
 const ACCOUNTS_HARDCODED = ['AnIncandescence', 'TauCeti_10700'];
-let ACCOUNT_BASE   = '';                       // 资源根
-let DB_PATH        = 'wayback_snapshots/index.json';
-let PROFILE_PATH   = 'wayback_snapshots/profile.json';
-let HTML_BASE      = 'wayback_snapshots/html/';
-let ASSET_BASE     = 'wayback_snapshots/';
+let ACCOUNT_BASE   = BASE;                       // 资源根
+let DB_PATH        = BASE + 'wayback_snapshots/index.json';
+let PROFILE_PATH   = BASE + 'wayback_snapshots/profile.json';
+let HTML_BASE      = BASE + 'wayback_snapshots/html/';
+let ASSET_BASE     = BASE + 'wayback_snapshots/';
 
 // 多账号状态
 let accounts       = [];       // 加载到的账号清单
@@ -1007,7 +1113,7 @@ let currentAccount = null;     // 当前账号对象（accounts 里的某一项�
 
 function applyAccountPaths(acct) {
   if (acct && acct.dir) {
-    const prefix = `accounts/${acct.dir}/`;
+    const prefix = `${BASE}accounts/${acct.dir}/`;
     ACCOUNT_BASE = prefix;
     DB_PATH      = prefix + 'wayback_snapshots/index.json';
     PROFILE_PATH = prefix + 'wayback_snapshots/profile.json';
@@ -1015,11 +1121,11 @@ function applyAccountPaths(acct) {
     ASSET_BASE   = prefix + 'wayback_snapshots/';
   } else {
     // 单账号兜底：旧目录结构
-    ACCOUNT_BASE = '';
-    DB_PATH      = 'wayback_snapshots/index.json';
-    PROFILE_PATH = 'wayback_snapshots/profile.json';
-    HTML_BASE    = 'wayback_snapshots/html/';
-    ASSET_BASE   = 'wayback_snapshots/';
+    ACCOUNT_BASE = BASE;
+    DB_PATH      = BASE + 'wayback_snapshots/index.json';
+    PROFILE_PATH = BASE + 'wayback_snapshots/profile.json';
+    HTML_BASE    = BASE + 'wayback_snapshots/html/';
+    ASSET_BASE   = BASE + 'wayback_snapshots/';
   }
 }
 
@@ -1028,6 +1134,7 @@ let treeData  = {};
 let activeDay = null;
 let ascending = false;
 let searchMode= false;
+let preSearchState = null;  // 搜索前的浏览位置，取消搜索时恢复
 let isLight   = true;
 let activeTab = 'tweets';
 let ownerUsername = '';  // 当前账号 username（去 @ 转小写），用于识别"主人 vs 外人"
@@ -1045,28 +1152,43 @@ async function init() {
   // 先尝试加载账号清单
   await loadAccounts();
   await loadCurrentAccount();
+  handleLocateParam();
 }
 
 /* ── 多账号 ─────────────────────────────────────────── */
 async function loadAccounts() {
-  if (!Array.isArray(ACCOUNTS_HARDCODED) || ACCOUNTS_HARDCODED.length === 0) return;
-  // 并发加载每个账号的 profile.json，组合成账号清单
-  const tasks = ACCOUNTS_HARDCODED.map(async (dir) => {
+  if (IS_ELECTRON) {
+    // Electron：从 main.js 暴露的虚拟路径动态扫描所有账号
     try {
-      const r = await fetch(`accounts/${dir}/wayback_snapshots/profile.json`);
-      if (!r.ok) return { dir, name: dir, username: dir, avatar: '' };
-      const c = await r.json();
-      return {
-        dir,
-        name: c.name || dir,
-        username: (c.username || dir).replace(/^@/, ''),
-        avatar: c.avatar ? `accounts/${dir}/wayback_snapshots/${c.avatar}` : '',
-      };
+      const r = await fetch(BASE + '_accounts');
+      if (!r.ok) return;
+      const list = await r.json();
+      if (!Array.isArray(list) || list.length === 0) return;
+      accounts = list;
     } catch (e) {
-      return { dir, name: dir, username: dir, avatar: '' };
+      console.info('账号清单加载失败，单账号模式');
+      return;
     }
-  });
-  accounts = await Promise.all(tasks);
+  } else {
+    // GitHub Pages：静态服务无法扫目录，用硬编码列表，各自读 profile.json
+    if (!Array.isArray(ACCOUNTS_HARDCODED) || ACCOUNTS_HARDCODED.length === 0) return;
+    const tasks = ACCOUNTS_HARDCODED.map(async (dir) => {
+      try {
+        const r = await fetch(`accounts/${dir}/wayback_snapshots/profile.json`);
+        if (!r.ok) return { dir, name: dir, username: dir, avatar: '' };
+        const c = await r.json();
+        return {
+          dir,
+          name: c.name || dir,
+          username: (c.username || dir).replace(/^@/, ''),
+          avatar: c.avatar ? `accounts/${dir}/wayback_snapshots/${c.avatar}` : '',
+        };
+      } catch (e) {
+        return { dir, name: dir, username: dir, avatar: '' };
+      }
+    });
+    accounts = await Promise.all(tasks);
+  }
   // 决定当前账号：localStorage > 第一个
   const remembered = localStorage.getItem('reader-account');
   currentAccount = (remembered && accounts.find(a => a.dir === remembered)) || accounts[0];
@@ -1095,7 +1217,7 @@ function renderAccountSwitcher() {
   const stripAt = (s) => (s || '').replace(/^@/, '');
   popup.innerHTML = accounts.map(a => `
     <div class="account-popup-item ${currentAccount && a.dir === currentAccount.dir ? 'current' : ''}" onclick="switchAccount('${esc(a.dir)}')">
-      <img class="a-avatar" src="${a.avatar ? esc(a.avatar) : ''}" alt="" onerror="this.style.background='var(--banner-bg)';this.removeAttribute('src')">
+      <img class="a-avatar" src="${a.avatar ? BASE + esc(a.avatar) : ''}" alt="" onerror="this.style.background='var(--banner-bg)';this.removeAttribute('src')">
       <div class="a-info">
         <div class="a-name">${esc(a.name || stripAt(a.username))}</div>
         <div class="a-handle">@${esc(stripAt(a.username))}</div>
@@ -1445,9 +1567,13 @@ function renderTweetsTab(sorted, area, showPinned = false) {
       <div class="pinned-block">
         <div class="pinned-block-label">📌 已置顶</div>
         <div class="post-iframe-wrap">
+          <button class="share-btn" title="分享" onclick="openShare('${esc(pinnedItem.tweet_id||'')}','${esc(pinnedItem.file||'')}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
           <iframe class="post-iframe"
             src="${esc(src)}"
             scrolling="no"
+            loading="lazy"
             onload="onFrameLoad(this)"
             sandbox="allow-scripts allow-same-origin allow-popups">
           </iframe>
@@ -1494,9 +1620,13 @@ function renderTweetsTab(sorted, area, showPinned = false) {
         <span class="post-seq">${i+1} / ${mainTweets.length}</span>
       </div>
       <div class="post-iframe-wrap">
+        <button class="share-btn" title="分享" onclick="openShare('${esc(item.tweet_id||'')}','${esc(item.file||'')}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
         <iframe class="post-iframe"
           src="${HTML_BASE}${esc(item.file)}"
           scrolling="no"
+          loading="lazy"
           onload="onFrameLoad(this)"
           sandbox="allow-scripts allow-same-origin allow-popups">
         </iframe>
@@ -1552,7 +1682,7 @@ function renderReplyCard(rep) {
     : `<div class="reply-avatar" style="background:var(--banner-bg)"></div>`;
 
   return `
-  <div class="reply-card${rep.is_virtual ? ' reply-card-virtual' : ''}">
+  <div class="reply-card${rep.is_virtual ? ' reply-card-virtual' : ''}" data-tweet-id="${esc(rep.tweet_id||'')}">
     <div class="reply-avatar-col">
       ${avatarHtml}
       <div class="reply-thread-line"></div>
@@ -1603,9 +1733,13 @@ function renderRepliesTab(sorted, area) {
       </div>
       <div class="post-time-label" style="padding:2px 16px 4px;font-size:12px;color:var(--text-muted)">${localTime}</div>
       <div class="post-iframe-wrap">
+        <button class="share-btn" title="分享" onclick="openShare('${esc(item.tweet_id||'')}','${esc(item.file||'')}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
         <iframe class="post-iframe"
           src="${HTML_BASE}${esc(item.file)}"
           scrolling="no"
+          loading="lazy"
           onload="onFrameLoad(this)"
           sandbox="allow-scripts allow-same-origin allow-popups">
         </iframe>
@@ -1746,6 +1880,72 @@ function injectFitHeight(iframe) {
   } catch(e) {}
 }
 
+/* ── 多图网格化：把主推文里平铺的多张图收成推特风格网格 ── */
+function gridClass(n) { return n === 2 ? 'n2' : n === 3 ? 'n3' : n === 4 ? 'n4' : 'n5plus'; }
+
+function injectGridCss(doc) {
+  if (doc.getElementById('__img_grid_css__')) return;
+  const s = doc.createElement('style');
+  s.id = '__img_grid_css__';
+  s.textContent = `
+    .__img_grid__ {
+      display: grid; gap: 3px; margin-top: 12px;
+      border-radius: 14px; overflow: hidden;
+    }
+    .__img_grid__ img.tweet-image {
+      width: 100% !important; height: 100% !important;
+      object-fit: cover; margin: 0 !important;
+      border-radius: 0 !important; cursor: pointer; display: block;
+      min-height: 0 !important;
+    }
+    .__img_grid__.n2 { grid-template-columns: 1fr 1fr; aspect-ratio: 16/9; }
+    .__img_grid__.n3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 16/10; }
+    .__img_grid__.n3 img.tweet-image:first-child { grid-row: 1 / 3; }
+    .__img_grid__.n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 16/10; }
+    .__img_grid__.n5plus { grid-template-columns: 1fr 1fr 1fr; grid-auto-rows: 1fr; }
+  `;
+  doc.head.appendChild(s);
+}
+
+function gridifyImages(doc, nonjson, iframe) {
+  const content = nonjson.querySelector('.tweet-content');
+  if (!content) return;
+  // 只取外层主推文的直接子图片（embedded 内的不动）
+  const imgs = Array.from(content.querySelectorAll(':scope > img.tweet-image'))
+    .filter(el => el.tagName === 'IMG');
+  if (imgs.length === 0) return;
+
+  // 单图：不网格化，只加点击放大
+  if (imgs.length === 1) {
+    const img = imgs[0];
+    if (!img.dataset.lbBound) {
+      img.style.cursor = 'zoom-in';
+      img.addEventListener('click', (e) => { e.preventDefault(); openLightbox(img.src); });
+      img.dataset.lbBound = '1';
+    }
+    return;
+  }
+
+  if (content.querySelector('.__img_grid__')) return;  // 已处理
+  injectGridCss(doc);
+  const grid = doc.createElement('div');
+  grid.className = '__img_grid__ ' + gridClass(imgs.length);
+  content.insertBefore(grid, imgs[0]);
+  imgs.forEach(img => {
+    grid.appendChild(img);
+    img.addEventListener('click', (e) => { e.preventDefault(); openLightbox(img.src); });
+    // 破图移除后更新网格，避免留空格
+    img.addEventListener('error', () => {
+      if (img.parentNode === grid) img.remove();
+      const remain = grid.querySelectorAll('img.tweet-image').length;
+      if (remain === 0) { grid.remove(); }
+      else if (remain === 1) { const only = grid.querySelector('img.tweet-image'); only.className = 'tweet-image'; only.style.cursor = 'zoom-in'; content.insertBefore(only, grid); grid.remove(); }
+      else grid.className = '__img_grid__ ' + gridClass(remain);
+      try { autoHeight(iframe); } catch(e) {}
+    }, { once: true });
+  });
+}
+
 /* ── 修复 iframe 内的图片显示 ────────────────────────────
    爬虫bug：外层 tweet-image 可能包含被引用推文的图，embedded 永远没图
    修复：用 index.json 里的 wanted_images / embedded_images 精确控制
@@ -1882,6 +2082,9 @@ function fixImagesInFrame(iframe) {
 
     // 3. 清理冗余短链（图片占位+引用占位的 t.co 链接，普通分享链接保留）
     removeShortlinksInFrame(nonjson, embedded, item);
+
+    // 3b. 多图网格化：主推文 ≥2 张图 → 收起成推特风格网格（点击放大看原图）
+    gridifyImages(doc, nonjson, iframe);
 
     // 4. 折叠 embedded（默认收起，避免引用框内大图占用过多垂直空间）
     //    reply-iframe 已经把整个 embedded 隐藏了，不需要折叠
@@ -2250,15 +2453,76 @@ function setupSearch() {
 
 function doSearch(kw) {
   if (!kw) { exitSearch(); return; }
+  // 进入搜索前保存当前浏览位置（天 + 滚动），取消搜索时恢复
+  if (!searchMode) {
+    const col = document.getElementById('main-col');
+    preSearchState = { day: activeDay, scrollTop: col ? col.scrollTop : 0, tab: activeTab };
+  }
   searchMode=true; activeDay=null;
   document.querySelectorAll('.day-row').forEach(e=>e.classList.remove('active'));
-  document.getElementById('day-heading').innerHTML=`"${esc(kw)}"`;
+
+  // ── 精确定位模式：推特链接 / 纯数字ID / 文件名 ──
+  // 命中精确格式时只显示唯一匹配那条；找不到显示无结果（不降级关键词）
+  // 标题统一只显示推文 ID（避免长链接撑爆标题）
+  const trimmed = kw.trim();
+  const linkMatch = trimmed.match(/status\/(\d+)/);
+  const tParam = trimmed.match(/[?&]?t=(\d+)/);   // 定位短码 / 完整定位链接里的 ?t=后8位
+  const isFileName = /\.html?$/i.test(trimmed);
+  let exactMode = false, exactItem = null, displayKw = kw;
+  if (linkMatch) {
+    exactMode = true;                           // 推特链接，找不到也显示无结果
+    const id = linkMatch[1];
+    displayKw = id;
+    exactItem = db.find(i => i.tweet_id === id);
+  } else if (tParam) {
+    // 定位码：用 tweet_id 后缀匹配（短码是后几位）
+    exactMode = true;
+    const suffix = tParam[1];
+    displayKw = '?t=' + suffix;
+    exactItem = db.find(i => i.tweet_id && i.tweet_id.endsWith(suffix));
+  } else if (isFileName) {
+    exactMode = true;                           // 文件名格式明确
+    displayKw = trimmed;
+    exactItem = db.find(i => i.file === trimmed || (i.file && i.file.endsWith(trimmed)));
+  } else if (/^\d+$/.test(trimmed)) {
+    // 纯数字：用完整 tweet_id 精确相等匹配。输入部分数字不等于任何完整 ID，
+    // 会自动降级为关键词搜索；只有输入完整 ID 才精确命中。
+    const found = db.find(i => i.tweet_id === trimmed);
+    if (found) { exactMode = true; exactItem = found; displayKw = trimmed; }
+  }
+
+  document.getElementById('day-heading').innerHTML=`"${esc(displayKw)}"`;
+
+  const area=document.getElementById('content-area');
+
+  if (exactMode) {
+    if (!exactItem) {
+      area.innerHTML=`<div class="welcome">
+        <div class="welcome-icon" style="opacity:.3">🔍</div>
+        <div class="welcome-title">无结果</div>
+        <div class="welcome-hint">没有找到匹配该链接/ID/文件名的推文</div>
+      </div>`; return;
+    }
+    const { localDate, localTime } = utcToLocal(exactItem.timestamp);
+    area.innerHTML=`<div class="anim">
+      <div class="result-count">精确匹配 1 条</div>
+      <div class="result-item" onclick="jumpToPost('${esc(localDate)}','${esc(exactItem.file)}','${esc(exactItem.tweet_id||'')}')">
+        <div class="result-meta">
+          <span class="result-date">${localDate}</span>
+          <span class="result-time">${localTime}</span>
+        </div>
+        <div class="result-text">${esc(exactItem.text||'(无正文)')}</div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  // ── 普通关键词 / 日期搜索 ──
   const kl=kw.toLowerCase();
   const res=db.filter(i=>{
     const { localDate, localTime } = utcToLocal(i.timestamp);
     return (i.text&&i.text.toLowerCase().includes(kl))||localDate.includes(kw)||localTime.includes(kw);
   });
-  const area=document.getElementById('content-area');
   if (!res.length) {
     area.innerHTML=`<div class="welcome">
       <div class="welcome-icon" style="opacity:.3">🔍</div>
@@ -2276,7 +2540,7 @@ function doSearch(kw) {
     ${shown.map(item=>{
       const { localDate, localTime } = utcToLocal(item.timestamp);
       return `
-      <div class="result-item" onclick="jumpToPost('${esc(localDate)}','${esc(item.file)}')">
+      <div class="result-item" onclick="jumpToPost('${esc(localDate)}','${esc(item.file)}','${esc(item.tweet_id||'')}')">
         <div class="result-meta">
           <span class="result-date">${localDate}</span>
           <span class="result-time">${localTime}</span>
@@ -2287,14 +2551,75 @@ function doSearch(kw) {
   </div>`;
 }
 
-function jumpToPost(dayKey, file) {
+function jumpToPost(dayKey, file, tweetId) {
   clearSearch();
-  selectDay(dayKey);
-  setTimeout(()=>{
-    document.querySelectorAll('.post-iframe,.reply-iframe').forEach(f=>{
-      if(f.src.endsWith(file)) f.scrollIntoView({behavior:'smooth',block:'start'});
-    });
-  }, 450);
+
+  // 判断目标推文应该在哪个 tab，以及是否是"主推文下的回复卡片"
+  const item = tweetId ? idIndex[tweetId] : null;
+  let targetTab = 'tweets';
+  let isReplyCard = false;
+  if (item && item.is_reply) {
+    const conv = item.conversation_id ? idIndex[item.conversation_id] : null;
+    const belongsToOwnMain = conv && !conv.is_reply && !conv.is_virtual;
+    if (belongsToOwnMain) { targetTab = 'tweets'; isReplyCard = true; }
+    else { targetTab = 'replies'; }
+  }
+  if (activeTab !== targetTab) switchTab(targetTab);
+
+  selectDay(dayKey);  // 内容立即可见，图片懒加载渐入（不白屏）
+
+  // 定位（可重复调用做校正）
+  const locate = (smooth) => {
+    if (isReplyCard && tweetId) {
+      const card = document.querySelector(`.reply-card[data-tweet-id="${tweetId}"]`);
+      if (!card) return false;
+      const section = card.closest('.replies-section');
+      if (section) {
+        const toggle = section.querySelector('.replies-toggle');
+        const list   = section.querySelector('.replies-list');
+        if (toggle && list && !list.classList.contains('open')) toggleReplies(toggle);
+      }
+      card.scrollIntoView({behavior: smooth ? 'smooth' : 'auto', block:'center'});
+      return true;
+    }
+    const iframes = document.querySelectorAll('.post-iframe,.reply-iframe');
+    for (const f of iframes) {
+      if (f.src.endsWith(file)) {
+        (f.closest('.post-block') || f).scrollIntoView({behavior: smooth ? 'smooth' : 'auto', block:'start'});
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // 目标是否就绪：所有 iframe load 完 + 内部图片 complete
+  const isReady = () => {
+    const iframes = Array.from(document.querySelectorAll('.post-iframe,.reply-iframe'));
+    for (const f of iframes) {
+      if (f.dataset.loaded !== '1') return false;
+      try {
+        const doc = f.contentDocument;
+        if (!doc) return false;
+        for (const img of doc.querySelectorAll('img')) if (!img.complete) return false;
+      } catch(e) {}
+    }
+    return true;
+  };
+
+  // 先粗定位（内容已可见），再等加载完精确校正一次
+  setTimeout(() => {
+    locate(true);
+    const startTime = Date.now();
+    const tick = () => {
+      if (isReady() || Date.now() - startTime > 2500) {
+        document.querySelectorAll('.post-iframe,.reply-iframe').forEach(f => { try { autoHeight(f); } catch(e){} });
+        requestAnimationFrame(() => requestAnimationFrame(() => locate(false)));
+      } else {
+        requestAnimationFrame(tick);
+      }
+    };
+    requestAnimationFrame(tick);
+  }, 300);
 }
 
 function clearSearch() {
@@ -2305,6 +2630,21 @@ function clearSearch() {
 
 function exitSearch() {
   searchMode=false;
+  // 优先恢复搜索前的浏览位置（天 + tab + 滚动）
+  if (preSearchState && preSearchState.day) {
+    const st = preSearchState;
+    preSearchState = null;
+    if (st.tab && st.tab !== activeTab) switchTab(st.tab);
+    activeDay = st.day;
+    selectDay(st.day, true);  // skipScroll，下面手动恢复滚动
+    const col = document.getElementById('main-col');
+    if (col) {
+      // 等渲染完再恢复滚动位置
+      setTimeout(() => { col.scrollTop = st.scrollTop; }, 60);
+    }
+    return;
+  }
+  preSearchState = null;
   if (activeDay) {
     const [y,m,d]=activeDay.split('-');
     const items=treeData[y]?.[m]?.[d]||[];
@@ -2498,6 +2838,118 @@ function utcToLocal(timestamp) {
     localDate: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,
     localTime: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`,
   };
+}
+
+/* ── 图片放大 lightbox（父页面全屏，由 iframe 内图片点击触发）── */
+function openLightbox(src) {
+  if (!src) return;
+  let box = document.getElementById('img-lightbox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'img-lightbox';
+    box.className = 'img-lightbox';
+    box.onclick = closeLightbox;
+    document.body.appendChild(box);
+  }
+  box.innerHTML = `<img src="${src.replace(/"/g,'&quot;')}" alt=""><button class="lightbox-close" aria-label="关闭">✕</button>`;
+  box.classList.add('open');
+}
+function closeLightbox() {
+  const box = document.getElementById('img-lightbox');
+  if (box) box.classList.remove('open');
+}
+
+/* ── 分享弹窗 ─────────────────────────────────────────── */
+function openShare(tweetId, file) {
+  if (!tweetId && !file) return;
+  const username = (currentAccount && currentAccount.username) || ownerUsername || '';
+  const twitterUrl = username && tweetId ? `https://twitter.com/${username}/status/${tweetId}` : '';
+  const shortId = tweetId ? tweetId.slice(-8) : '';
+  const locateUrl = shortId ? `${location.origin}${location.pathname}?t=${shortId}` : '';
+  const shortCode = shortId ? `?t=${shortId}` : '';
+
+  const rows = [
+    twitterUrl ? { label: '推特原链接', value: twitterUrl } : null,
+    tweetId    ? { label: '推文 ID',    value: tweetId } : null,
+    file       ? { label: '文件名',     value: file } : null,
+    locateUrl  ? { label: '存档定位链接（浏览器打开）', value: locateUrl } : null,
+    shortCode  ? { label: '定位短码（粘贴到搜索框）', value: shortCode } : null,
+  ].filter(Boolean);
+
+  let overlay = document.getElementById('share-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'share-overlay';
+    overlay.className = 'share-overlay';
+    overlay.onclick = (e) => { if (e.target === overlay) closeShare(); };
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div class="share-dialog">
+      <div class="share-dialog-head">
+        <div class="share-dialog-title">分享这条推文</div>
+        <button class="share-close" onclick="closeShare()">✕</button>
+      </div>
+      ${rows.map(r => `
+        <div class="share-row">
+          <div class="share-row-body">
+            <div class="share-row-label">${esc(r.label)}</div>
+            <div class="share-row-value" title="${esc(r.value)}">${esc(r.value)}</div>
+          </div>
+          <button class="share-copy" onclick="copyShare(this,'${esc(r.value).replace(/'/g,"\\'")}')">复制</button>
+        </div>`).join('')}
+    </div>`;
+  overlay.classList.add('open');
+}
+
+function closeShare() {
+  const overlay = document.getElementById('share-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function copyShare(btn, text) {
+  const done = () => {
+    btn.textContent = '已复制';
+    btn.classList.add('copied');
+    showToast('已复制到剪贴板');
+    setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function showToast(msg) {
+  let t = document.getElementById('share-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'share-toast'; t.className = 'share-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ── ?t= 定位：打开带定位参数的链接时，跳到对应推文 ──────── */
+function handleLocateParam() {
+  const t = new URLSearchParams(location.search).get('t');
+  if (!t) return;
+  // 在已加载的 db 里找 tweet_id 后缀匹配 t 的推文（t 是后8位）
+  const item = db.find(i => i.tweet_id && i.tweet_id.endsWith(t));
+  if (!item) return;
+  const { localDate } = utcToLocal(item.timestamp);
+  // 等首屏渲染稳定后跳转
+  setTimeout(() => jumpToPost(localDate, item.file, item.tweet_id), 300);
 }
 
 init();
