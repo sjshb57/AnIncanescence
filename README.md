@@ -4,6 +4,10 @@
 
 ---
 
+### 附注：项目已完成迁移，请移至此[维护存档](https://github.com/TwitterArchiver/AnIncanescence)
+
+---
+
 ## 关于她
 
 <img src="https://free.picui.cn/free/2026/04/14/69dd981a6e2cf.png" width="120" align="right" style="border-radius:50%; margin-left:16px; margin-bottom:8px"/>
